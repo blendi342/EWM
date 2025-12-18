@@ -1,0 +1,52 @@
+  TYPE-POOLS: wmegc.
+
+  DATA lt_docid    TYPE /scwm/tt_docid,
+       ls_quantity TYPE /scwm/s_quan,
+       ls_material TYPE /scwm/s_pack_stock.
+
+  APPEND VALUE /scwm/s_docid( docid = uv_docid ) TO  lt_docid.
+
+  /scwm/cl_tm=>set_lgnum( gv_lgnum ).
+
+  go_pack_ibdl = NEW #( ).
+  go_pack_ibdl->init(
+  EXPORTING
+  iv_lgnum      = gv_lgnum
+  it_docid      = lt_docid
+  iv_doccat     = "wmegc_doccat_pdi
+  iv_no_refresh = abap_false
+  iv_lock_dlv   = abap_true
+  IMPORTING
+  ev_foreign_lock = DATA(lv_foreign_lock) ).
+  IF go_pack_ibdl IS NOT BOUND.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+    WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 RAISING error_message.
+  ENDIF.
+
+  ls_quantity = VALUE #( quan = lv_pack_now
+                           unit = gv_uom ).
+
+ go_pack_ibdl->/scwm/if_pack_bas~pack_stock(
+      EXPORTING
+        iv_dest_hu      = gs_huhdr-guid_hu
+        is_material     = ls_material
+        is_quantity     = ls_quantity
+      EXCEPTIONS
+        error           = 1
+        OTHERS          = 2
+        ).
+IF sy-subrc <> 0.
+ MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+            WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 RAISING error_message.
+ENDIF.
+
+ go_pack_ibdl->save(
+  EXPORTING
+    iv_commit = 'X'
+    iv_wait   = 'X'
+  EXCEPTIONS
+    error     = 1
+    OTHERS    = 2 ).
+
+  /scwm/cl_pack=>/scwm/if_pack_bas~cleanup( ).
+  FREE go_pack_ibdl.
