@@ -1,0 +1,15 @@
+DATA : ls_t300_md TYPE  /scwm/s_t300_md,
+       lv_lgnum   TYPE  /scwm/lgnum.
+
+  CALL FUNCTION '/SCWM/T300_MD_READ_SINGLE'
+    EXPORTING
+      iv_lgnum   = gv_lgnum
+    IMPORTING
+      es_t300_md = ls_t300_md
+    EXCEPTIONS
+      not_found  = 1
+      OTHERS     = 2.
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+    WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 RAISING error_message.
+  ENDIF.
