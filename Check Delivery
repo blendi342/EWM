@@ -1,0 +1,41 @@
+ DATA(lt_selection) = VALUE /scwm/dlv_selection_tab( option = 'EQ' sign = 'I'
+               ( fieldname = /scdl/if_dl_logfname_c=>sc_locationid_wh_h    low = ls_t300_md-scuguid )
+               ( fieldname = /scdl/if_dl_logfname_c=>sc_doctype_h          low = 'INB' )
+               ( fieldname = /scdl/if_dl_logfname_c=>sc_status_value_dgr_i low = '1' )
+               ( fieldname = /scdl/if_dl_logfname_c=>sc_status_value_dgr_i low = '2' )
+               ( fieldname = /scdl/if_dl_logfname_c=>sc_docno_h            low = gv_ewm_docno )
+               ( fieldname =  /scdl/if_dl_logfname_c=>sc_status_value_dwa_i  low = '1' )
+               ( fieldname =  /scdl/if_dl_logfname_c=>sc_status_value_dwa_i  low = '2' )
+                ).
+
+  DATA(ls_include_data) = VALUE /scwm/dlv_query_incl_str_prd( head_status            = abap_true
+                                                              head_status_dyn        = 'Y'
+                                                              item_status            = abap_true
+                                                              head_status_dyn_detail = VALUE #( ( /scdl/if_dl_status_c=>sc_t_packing ) ) ).            " Packing status (DPC)
+
+  DATA(ls_read_options) = VALUE /scwm/dlv_query_contr_str(
+                   data_retrival_only       = abap_true
+                   mix_in_object_instances  = abap_true
+                   head_part_select         = abap_true ).
+
+  DATA(lo_dlv) = /scwm/cl_dlv_management_prd=>get_instance( ).
+
+  TRY.
+      lo_dlv->query(
+          EXPORTING
+              it_selection    = lt_selection
+              iv_doccat       = /scdl/if_dl_doc_c=>sc_doccat_inb_prd
+              is_include_data = ls_include_data
+              is_read_options = ls_read_options
+          IMPORTING
+              et_headers                  =  DATA(lt_headers)                " Delivery Header (PRD) for Read Operations
+           ).
+    CATCH /scdl/cx_delivery INTO DATA(lx_msg).
+      MESSAGE e000(zinpack) WITH lx_msg->get_longtext( ) RAISING error_message.
+  ENDTRY.
+
+
+  READ TABLE lt_headers ASSIGNING FIELD-SYMBOL(<fs_headers>) INDEX 1.
+  IF sy-subrc <> 0.
+    MESSAGE e000(zinpack) WITH 'Enter a valid delivery' RAISING error_message.
+  ENDIF.
