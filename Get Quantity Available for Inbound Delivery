@@ -1,0 +1,20 @@
+DATA lt_qsel_keys TYPE /scdl/t_sp_k_item_addmeas.
+
+DATA(lo_qty_select) = NEW /scdl/cl_sp_prd_inb( ).
+
+    APPEND VALUE #( docid        = <fs_items>-docid
+                    itemid       = <fs_items>-itemid
+                    qty_role = 'PAN'
+                                ) TO lt_qsel_keys.
+
+  lo_qty_select->select(
+    EXPORTING
+      inkeys = lt_qsel_keys
+      aspect = /scdl/if_sp_c=>sc_asp_item_addmeas
+    IMPORTING
+      outrecords = gt_packed_qty
+      rejected   = DATA(lv_rejected)
+      ).
+  IF lv_rejected = abap_true.
+    MESSAGE e000(zinpack) WITH 'Error retrieving packed data' RAISING error_message.
+  ENDIF.
