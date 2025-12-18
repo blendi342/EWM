@@ -1,0 +1,1 @@
+ DATA(lo_mezz_stock) = NEW /scwm/cl_mon_stock( iv_lgnum = gv_lgnum ).
