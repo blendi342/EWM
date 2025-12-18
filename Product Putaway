@@ -1,0 +1,43 @@
+ DATA : lt_ltap      TYPE  /scwm/tt_ltap_vb,
+         lt_return    TYPE  bapirettab,
+         lt_create    TYPE /scwm/tt_to_create_int,
+         lv_tanum     TYPE  /scwm/tanum,
+         lv_severity  TYPE  bapi_mtype,
+         lv_putwy_qty TYPE /scwm/de_quantity.
+
+MOVE us_zmezz3-putwy_qty_c TO lv_putwy_qty.
+
+  APPEND VALUE /scwm/s_to_create_int( procty        = 'FREE'
+                                      matid         = gs_buffer-matid
+                                      anfme         = lv_putwy_qty
+                                      altme         = gs_buffer-vsola_uom
+                                      vlenr         = gs_buffer-huident
+                                      squit         = abap_true
+                                      cat           = gs_buffer-stock_type
+                                      entitled      = gs_buffer-entitled
+                                      entitled_role = gs_buffer-entitled_role
+                                      owner         = gs_buffer-owner
+                                      owner_role    = gs_buffer-owner_role
+                                      vltyp         = 'IMEZ'
+                                      nltyp         = 'MEZZ'
+                                      nlpla         = us_zmezz3-lgpla
+                                     ) TO lt_create.
+
+  CALL FUNCTION '/SCWM/TO_CREATE'
+    EXPORTING
+      iv_lgnum       = gv_lgnum
+      iv_commit_work = abap_true
+      it_create      = lt_create
+    IMPORTING
+      ev_tanum       = lv_tanum
+      et_ltap_vb     = lt_ltap
+      et_bapiret     = lt_return
+      ev_severity    = lv_severity.
+  IF lv_severity CA 'EAX'.
+
+    LOOP AT lt_return ASSIGNING FIELD-SYMBOL(<fs_return>) WHERE type CA 'EXA'.
+      MESSAGE ID <fs_return>-id TYPE <fs_return>-type NUMBER <fs_return>-number
+      WITH <fs_return>-message_v1 <fs_return>-message_v2 <fs_return>-message_v3 <fs_return>-message_v4
+      RAISING error_message.
+    ENDLOOP.
+  ENDIF.
