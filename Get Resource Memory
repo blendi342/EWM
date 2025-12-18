@@ -1,0 +1,7 @@
+  DATA ls_rsrc    TYPE /scwm/rsrc.
+
+  CALL FUNCTION '/SCWM/RSRC_RESOURCE_MEMORY'
+    EXPORTING
+      iv_uname = sy-uname
+    CHANGING
+      cs_rsrc  = ls_rsrc.
