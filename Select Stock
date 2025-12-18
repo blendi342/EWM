@@ -1,0 +1,20 @@
+  DATA : lt_huitm          TYPE /scwm/tt_stock_select.
+
+  DATA(lt_matid16) = VALUE /scwm/tt_matid( ( uv_matid16 ) ).
+  DATA(lr_lgtyp) = VALUE rseloption( sign = 'I' option = 'EQ' ( low = cv_nltyp )
+                                                              ( low = 'IMEZ' ) ).
+
+  CALL FUNCTION '/SCWM/SELECT_STOCK'
+    EXPORTING
+      iv_lgnum = gv_lgnum
+      it_matid = lt_matid16
+      ir_lgtyp = lr_lgtyp
+    IMPORTING
+      et_huitm = lt_huitm
+    EXCEPTIONS
+      error    = 1
+      OTHERS   = 2.
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+    WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 RAISING error_message.
+  ENDIF.
