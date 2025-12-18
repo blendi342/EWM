@@ -1,0 +1,31 @@
+  DATA : lt_ltap     TYPE /scwm/tt_ltap_vb,
+         lt_return   TYPE  bapirettab,
+         lv_procty   TYPE /scwm/de_procty,
+         lv_nlpla    TYPE /scwm/ltap_nlpla,
+         lv_pmatid22 TYPE /sapapo/matid,
+         lv_severity TYPE  bapi_mtype.
+
+DATA(lt_hu) = VALUE /scwm/tt_to_crea_hu( ( huident = zcs_zinpa4-huident
+                                             norou   = abap_true
+                                             procty  = 'FREE'
+                                             nltyp   = ls_hu-nltyp
+                                             nlber   = lv_lgber
+                                              ) ).
+
+  CALL FUNCTION '/SCWM/TO_CREATE_MOVE_HU'
+    EXPORTING
+      iv_lgnum       = gv_lgnum
+      iv_commit_work = abap_true
+      iv_bname       = sy-uname
+      it_create_hu   = lt_hu
+    IMPORTING
+      et_ltap_vb     = lt_ltap
+      et_bapiret     = lt_return
+      ev_severity    = lv_severity
+    EXCEPTIONS
+      error          = 1
+      OTHERS         = 2.
+  IF lv_severity CA 'EA'.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+      WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 RAISING error_message.
+  ENDIF.
